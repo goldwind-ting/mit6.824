@@ -1,4 +1,4 @@
-# Implementation of mit-6.82(git://g.csail.mit.edu/6.824-golabs-2022)
+# Implementation of mit-6.824-2022(git://g.csail.mit.edu/6.824-golabs-2022)
 
 - [x] Lab 1: MapReduce 
 - [x] Lab 2: Raft 
