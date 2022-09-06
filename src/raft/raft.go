@@ -679,8 +679,15 @@ func (rf *Raft) heartbeatTicker() {
 	}
 }
 
+
 func (rf *Raft) syncCommitIndex(server int) {
 	for i := rf.commitIndex + 1; i <= rf.matchIndex[server]; i++ {
+		if rf.logs[i-rf.lastSnapshotIndex].Term < rf.currentTerm {
+			continue
+		}
+		if rf.logs[i-rf.lastSnapshotIndex].Term > rf.currentTerm {
+			break
+		}
 		count := 0
 		for p := range rf.peers {
 			if p == rf.me || rf.matchIndex[p] >= i {
@@ -688,11 +695,13 @@ func (rf *Raft) syncCommitIndex(server int) {
 			}
 		}
 		if count >= rf.majority {
-			rf.commitIndex++
-			select {
-			case rf.ac <- rf.logs[rf.commitIndex-rf.lastSnapshotIndex]:
-			case <-rf.stopCh:
-				return
+			for j := rf.commitIndex + 1; j <= i; j++ {
+				rf.commitIndex++
+				select {
+				case rf.ac <- rf.logs[rf.commitIndex-rf.lastSnapshotIndex]:
+				case <-rf.stopCh:
+					return
+				}
 			}
 		}
 	}
